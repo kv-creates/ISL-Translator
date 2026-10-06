@@ -85,9 +85,9 @@ def main():
         "using MediaPipe hand landmarks and a CNN-BiLSTM model exported to TensorFlow Lite.\n\n"
         "Stack: Python (MediaPipe, scikit-learn, TensorFlow) for training on Google Colab; "
         "Flutter (camera, hand_detection, tflite_flutter) for on-device inference.\n\n"
-        "Data: real datasets only — no synthetic data. Primary: ISL-Hindi Character Dataset "
-        "(48,000 images, 40 classes); IEEE ISL Fingerspelling (35 classes, manual download); "
-        "sentence-level ISL-CSLTR / ISH-News (Colab-scale)."
+        "Data: real datasets only — no synthetic data. Primary FREE (no login, same A-Z type): "
+        "RealSign ISL (26 classes; Train 18,198 + Test 5,200 + Val 2,579, 4 signers) + "
+        "Ayeshatasnim ISL (26 classes, 12,637 images); secondary Hindi 40-class + open sentence-level sets."
     ))
 
     # 2. Problem Definition
@@ -108,26 +108,21 @@ def main():
     # 3. EDA
     h1(doc, "Exploratory Data Analysis (EDA)")
     body(doc, (
-        "Dataset source: ISL-Hindi Character Dataset via Kaggle (krishbhagat/indian-sign-language-hindi, "
-        "mirror of krish09bha/isl-hindi-character-dataset): 40 Devanagari classes x 1200 images = 48,000 files, "
-        "verified with src/verify_data.py and kagglehub cache. IEEE ISL Fingerspelling Image Dataset "
-        "(35 classes A-Z+1-9, ~400/class, 3 signers) requires manual IEEE DataPort login; "
-        "sentence-level ISL-CSLTR (700 videos, 100 sentences, 7 signers, 8.29GB) and open continuous "
-        "fingerspelling (1308 segments, kirandevraj.github.io/ISL-Fingerspelling) are Colab-scale.\n\n"
-        "Cleaning: PIL verify over 48,000 files — 0 corrupted. Image size is 128x128 actual "
-        "(advertised 48x48 — documented mismatch). Missing values: none (no empty class).\n\n"
-        "Duplicates: md5 hashing found 1410 groups / 46,584 extra files (~97% copies, filenames contain 'Copy'). "
-        "Training therefore dedups by hash (or group-wise split) to prevent leakage; EDA sample (200 files) "
-        "shows the same pattern (41 groups/159 extra).\n\n"
+        "Dataset source: FREE same-type sets (no login) — RealSign "
+        "(github.com/RealSign62/RealSign-Indian-Sign-Language-Dataset, CC0-1.0, 4 signers: "
+        "Training 26x700=18,198, Testing 26x200=5,200, Validation 26x100=2,579) + Ayeshatasnim "
+        "(Apache-2.0, 26 classes, 12,637 images). Secondary: Hindi Kaggle 40x1200 (97% file-copy dups), "
+        "IEEE 35-class (login-walled, covered by free A-Z), sentence-level ISLTranslate/iSign (Colab-scale).\n\n"
+        "Cleaning: PIL verify on RealSign Training — 0 corrupted. Sizes varied ~200-300px (real captures).\n\n"
+        "Duplicates: md5 — RealSign only 141 groups/144 extra (~0.8%, clean) vs Hindi 1410/46k (97% copies). "
+        "Pipeline dedups by hash regardless.\n\n"
         "Feature engineering: MediaPipe HandLandmarker, 21 landmarks x (x,y,z) = 63 dims, wrist-relative "
-        "(subtract landmark 0), missing hand = 63 zeros. Local sample: 100% detection (0/200 no-hand).\n\n"
-        "Train/test split: 70/15/15 stratified (seed 42); signer-independent: Hindi set lacks signer IDs so "
-        "Colab uses contributor-held-out where available (CSLTR 7 signers, fingerspelling 3 individuals) plus "
-        "hash-level leakage check (zero md5 overlap across splits).\n\n"
-        "Data leakage check: verified — no duplicate hashes across train/val/test after dedup; "
-        "IEEE/CSLTR signer IDs kept disjoint."
+        "(subtract landmark 0), missing hand = 63 zeros. Local sample (26x10=260): 97.7% detection (6/260 no-hand).\n\n"
+        "Train/test split: RealSign ships 700/200/100 train/test/val (use as-is); local sample re-splits 70/15/15 "
+        "(seed 42). Signer-independent via RealSign's 4 signers + hash leakage check (0 overlap).\n\n"
+        "Data leakage check: verified — no duplicate hashes across train/val/test after dedup."
     ))
-    pic(doc, "eda_class_distribution.png", "Class distribution: 40 Hindi classes, 1200 each (balanced).")
+    pic(doc, "eda_class_distribution.png", "Class distribution: 26 A-Z classes, ~700 each in Training (balanced).")
     pic(doc, "eda_samples.png", "Random samples: 5 images per class (first 8 classes shown).")
     pic(doc, "mediapipe_demo.png", "MediaPipe HandLandmarker overlay on a real sample (21 landmarks).")
 
@@ -136,12 +131,12 @@ def main():
     body(doc, (
         "Baselines (notebooks/ISL_Training_Colab.ipynb, Cells 4-6):\n"
         "(1) Random Forest with GridSearch (n_estimators 100/200, max_depth None/20, 3-fold CV) on 63-d features. "
-        "Strong tabular baseline; local sample reached 0.90 accuracy.\n"
+        "Strong tabular baseline; local RealSign sample reached 0.949 accuracy.\n"
         "(2) SVM RBF (C=10, StandardScaler, 8k subsample for speed) — margin baseline for small landmark data.\n"
         "(3) Simple CNN: Input 21x3x1 -> Conv2D(32,3x3) -> MaxPool -> Dense(128) -> Dropout(0.3) -> softmax, "
         "20 epochs, Adam.\n\n"
         "Final CNN-BiLSTM (Cell 7): Conv2D block for spatial hand-shape features -> Reshape to sequence -> "
-        "Bidirectional LSTM for finger co-articulation -> Dropout -> softmax over 40 classes. "
+        "Bidirectional LSTM for finger co-articulation -> Dropout -> softmax over 26 A-Z classes. "
         "Hyperparameter tuning with KerasTuner RandomSearch (5 trials): filters 16-64, LSTM 32-128, "
         "dropout 0.2-0.5, lr 1e-4-1e-2 (log), 15 epochs search + 25 epochs final fit. "
         "Exports: isl_model.h5 and quantized isl_model.tflite (TFLiteConverter, Optimize.DEFAULT) for Flutter."
@@ -154,8 +149,8 @@ def main():
         "plus confusion matrix and accuracy/loss curves. ROC-AUC reported one-vs-rest where applicable. "
         "Latency: single-sample Keras predict timed in Colab; on-device TFLite target <500ms (app readout "
         "shows live ms; mid-range Android typically 50-150ms).\n\n"
-        "Local preliminary (200-sample, RF n=50): test accuracy 0.90 — proves the pipeline end-to-end; "
-        "full 48k deduped results are produced by running the Colab notebook and overwrite these figures. "
+        "Local preliminary (RealSign 26x10=260, RF n=50): test accuracy 0.949 — proves the pipeline end-to-end; "
+        "full 26k results are produced by running the Colab notebook and overwrite these figures. "
         "After Colab run, copy confusion_matrix.png and training_history.png into screenshots/ and re-run "
         "this script to refresh the report."
     ))
@@ -168,11 +163,11 @@ def main():
         "Business KPI — Successful translation rate: definition = fraction of real-world fingerspelling attempts "
         "that produce correct text without retry; target >=90% on a 100-phrase field test; actual = field test "
         "pending after Colab model + app install.\n\n"
-        "ML KPIs — (a) Test accuracy target >=85% (sample RF 0.90; full run pending); (b) Weighted F1 target >=0.85; "
+        "ML KPIs — (a) Test accuracy target >=85% (RealSign sample RF 0.949; full run pending); (b) Weighted F1 target >=0.85; "
         "(c) Latency target <500ms frame-to-text (Colab Keras single-sample timed; app shows live TFLite ms); "
         "(d) ROC-AUC target >=0.95 macro.\n\n"
-        "Data Quality KPIs — (a) Corruption rate target 0% (actual 0/48k); (b) Hand-detection coverage target >=98% "
-        "(actual 100% sample); (c) Cross-split duplicate overlap target 0% (enforced by md5 dedup; raw had 97% copies); "
+        "Data Quality KPIs — (a) Corruption rate target 0% (actual 0/18k RealSign train); (b) Hand-detection coverage target >=98% "
+        "(actual 97.7% sample); (c) Cross-split duplicate overlap target 0% (enforced by md5 dedup; raw RealSign only 0.8% copies); "
         "(d) Class balance target max/min <=1.2 (actual 1.0, perfectly balanced)."
     ))
 
@@ -196,10 +191,10 @@ def main():
     # 8. Conclusion
     h1(doc, "Conclusion and Future Scope")
     body(doc, (
-        "Conclusion: a complete real-data ISL pipeline is built and verified locally — 48k real images, "
-        "MediaPipe 63-d features with 100% sample detection, RF/SVM/CNN/CNN-BiLSTM Colab notebook with tuning "
+        "Conclusion: a complete real-data ISL pipeline is built and verified locally — free RealSign 26k + Ayeshatasnim 12.6k, "
+        "MediaPipe 63-d features with 97.7% sample detection, RF/SVM/CNN/CNN-BiLSTM Colab notebook with tuning "
         "and TFLite export, and a Flutter app (analyze-clean) ready for the model. Preliminary sample accuracy "
-        "0.90 confirms the approach; full metrics follow the Colab run.\n\n"
+        "0.949 confirms the approach; full metrics follow the Colab run.\n\n"
         "Future scope: (1) sentence-level ISL-CSLTR/ISH-News transformer for continuous signing; "
         "(2) signer-independent evaluation across the 3 IEEE individuals + 7 CSLTR signers; "
         "(3) on-device personalization (few-shot adaptation); (4) Hindi + English bilingual output with TTS; "

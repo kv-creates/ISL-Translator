@@ -2,7 +2,9 @@
 - Class distribution bar chart
 - 5 random samples per class (grid, first 8 classes to keep figure readable + full in separate)
 - Corrupted / missing / duplicate checks
-Usage: python src/eda.py [--base data/raw/isl-hindi-sample | kagglehub cache] [--max-per-class 200]
+Primary: FREE sets (no login) — data/raw/free-isl-realsign/unzipped/{Training,Testing,Validation}
+  (26 A-Z) and data/raw/free-isl-ayeshatasnim/unzipped (26 a-z).
+Usage: python src/eda.py [--base data/raw/free-isl-realsign/unzipped/Training]
 """
 import argparse
 import hashlib
@@ -24,8 +26,10 @@ IMG_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 def find_base(explicit=None):
     if explicit and Path(explicit).exists():
         return Path(explicit)
-    # prefer local sample, else kagglehub cache
-    for cand in [PROJECT/"data"/"raw"/"isl-hindi-sample",
+    # prefer FREE sets (no login, same A-Z type), then local sample, then kaggle cache
+    for cand in [PROJECT/"data"/"raw"/"free-isl-realsign"/"unzipped"/"Training",
+                 PROJECT/"data"/"raw"/"free-isl-ayeshatasnim"/"unzipped",
+                 PROJECT/"data"/"raw"/"isl-hindi-sample",
                  PROJECT/"data"/"raw"/"isl-hindi"/"HindiSignImages48x48"]:
         if cand.exists():
             return cand
@@ -102,8 +106,8 @@ def main():
     plt.figure(figsize=(14, 5))
     names = [f"C{i}" for i in range(len(classes))]
     plt.bar(names, [counts[c.name] for c in classes])
-    plt.title("ISL-Hindi: images per class (40 classes, balanced 1200/class full; sample=5/class)")
-    plt.xlabel("Class index (see EDA_FINDINGS.md for Devanagari mapping)")
+    plt.title(f"Images per class — {base.name} ({len(classes)} classes, total {total})")
+    plt.xlabel("Class index (see EDA_FINDINGS.md for label mapping)")
     plt.ylabel("Count")
     plt.tight_layout()
     out1 = SCREEN / "eda_class_distribution.png"

@@ -1,6 +1,6 @@
-source=D:\mlsignlanguage\ISL_Translator_Project\data\raw\isl-hindi-sample
-num_classes=40
+source=D:\mlsignlanguage\ISL_Translator_Project\data\raw\free-isl-realsign\unzipped\Training
+num_classes=26
 feature_dim=63 (21*xyz wrist-relative)
-total=200 no_hand=0
-train=140 val=30 test=30 seed=42
-split=70/15/15 stratified; signer-independent: Hindi set lacks signer IDs -> contributor-held-out in Colab when available; dedup by md5 before training (1410 dup groups found in EDA).
+total=260 no_hand=6
+train=182 val=39 test=39 seed=42
+split=70/15/15 stratified (RealSign ships 700/200/100 train/test/val; local sample re-splits 70/15/15); signer-independent: RealSign 4 signers kept disjoint where IDs available; dedup by md5 before training.

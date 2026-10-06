@@ -1,5 +1,5 @@
-classes=40
-total=48000
+classes=26
+total=18198
 corrupt=0
-dup_groups=1410
-dup_extra=46584
+dup_groups=141
+dup_extra=144

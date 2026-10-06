@@ -1,10 +1,11 @@
 """Extract MediaPipe hand landmarks -> .npy (wrist-relative), 70/15/15 split.
 Supports mediapipe 0.10 (solutions.hands) AND 1.x (tasks HandLandmarker).
 - Feature: 21 landmarks * (x,y,z) = 63 dims, wrist-relative (lm0 subtracted), missing = zeros.
+- Primary FREE source: data/raw/free-isl-realsign/unzipped/Training (26 A-Z, 700/class).
 Usage:
   python src/preprocess.py --source sample --limit-per-class 5
   python src/preprocess.py --source sample
-  python src/preprocess.py --source full   (48k, slow)
+  python src/preprocess.py --source full   (RealSign train 18k, slow)
 """
 import argparse
 import os
@@ -23,10 +24,14 @@ MODEL_URL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/han
 
 def resolve_source(which):
     if which == "sample":
-        p = PROJECT / "data" / "raw" / "isl-hindi-sample"
-        if p.exists():
-            return p
-    for cand in [PROJECT / "data" / "raw" / "isl-hindi" / "HindiSignImages48x48",
+        for cand in [PROJECT / "data" / "raw" / "free-isl-realsign" / "unzipped" / "Training",
+                     PROJECT / "data" / "raw" / "free-isl-ayeshatasnim" / "unzipped",
+                     PROJECT / "data" / "raw" / "isl-hindi-sample"]:
+            if Path(cand).exists():
+                return Path(cand)
+    for cand in [PROJECT / "data" / "raw" / "free-isl-realsign" / "unzipped" / "Training",
+                 PROJECT / "data" / "raw" / "free-isl-ayeshatasnim" / "unzipped",
+                 PROJECT / "data" / "raw" / "isl-hindi" / "HindiSignImages48x48",
                  Path(os.path.expanduser("~")) / ".cache" / "kagglehub" / "datasets" / "krishbhagat" / "indian-sign-language-hindi" / "versions" / "1" / "HindiSignImages48x48",
                  PROJECT / "data" / "raw" / "isl-hindi-sample"]:
         if Path(cand).exists():
@@ -177,7 +182,7 @@ def main():
     with open(PROCESSED / "meta.txt", "w", encoding="utf-8") as f:
         f.write(f"source={src}\nnum_classes={len(labels)}\nfeature_dim=63 (21*xyz wrist-relative)\n")
         f.write(f"total={len(y)} no_hand={no_hand}\ntrain={len(tr)} val={len(va)} test={len(te)} seed={args.seed}\n")
-        f.write("split=70/15/15 stratified; signer-independent: Hindi set lacks signer IDs -> contributor-held-out in Colab when available; dedup by md5 before training (1410 dup groups found in EDA).\n")
+        f.write("split=70/15/15 stratified (RealSign ships 700/200/100 train/test/val; local sample re-splits 70/15/15); signer-independent: RealSign 4 signers kept disjoint where IDs available; dedup by md5 before training.\n")
 
     # demo screenshot
     if demo is not None:
