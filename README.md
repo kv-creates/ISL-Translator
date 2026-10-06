@@ -24,14 +24,17 @@ ISL_Translator_Project/
 └── screenshots/      # EDA plots, confusion matrix, app UI
 ```
 
-## Phase 1 — Datasets (NO synthetic data, real only)
+## Phase 1 — Datasets (NO synthetic data, real only — FREE first)
 
 | # | Dataset | Source | Classes / Size | Download |
 |---|---------|--------|----------------|----------|
-| 1 | ISL Fingerspelling Image Dataset | IEEE DataPort `isl-fingerspelling-image-dataset` | 35 classes (A-Z + 1-9), ~400/class, >14,000 images, 3 signers | https://ieee-dataport.org/documents/isl-fingerspelling-image-dataset — requires IEEE DataPort login/subscription. Manual download → place in `data/raw/isl-fingerspelling/` |
-| 2 | ISL-Hindi Character Dataset | Kaggle `krishbhagat/indian-sign-language-hindi` (= `krish09bha/isl-hindi-character-dataset` alias, 48,000 imgs, 40 Hindi chars ×1200, 48×48) + HF mirror `KRISH09bha/Hindi-Indian-Sign-language-dataset-ISL` | 40 classes, 1200/class | `python src/download_data.py` or manual from https://www.kaggle.com/datasets/krishbhagat/indian-sign-language-hindi |
-| 3 | Sentence-level ISL (ISH-News derived) | Kaggle `drblack00/isl-csltr-indian-sign-language-dataset` (ISL-CSLTR: 700 videos, 100 sentences, 7 signers, 18863 frames) + Continuous Fingerspelling `https://kirandevraj.github.io/ISL-Fingerspelling/` (1308 segs, 499 videos) | sentence-level | `python src/download_data.py` |
-| Alt | Indian Sign Language (A-Z, MediaPipe) | Kaggle `prekshapalva/indian-sign-language` (26 dirs, ~2000/class, 3.85GB) / `prathumarikeri/indian-sign-language-isl` | 26 classes | fallback if above fails |
+| 0 FREE | RealSign ISL A-Z (primary, same type) | GitHub `RealSign62/RealSign-Indian-Sign-Language-Dataset` (CC0-1.0, 4 signers) | 26 classes; Train 26×700 (18,198) + Test 26×200 (5,200) + Val 26×100 (2,579) | `python src/download_data.py --free` or https://github.com/RealSign62/RealSign-Indian-Sign-Language-Dataset → `data/raw/free-isl-realsign/` |
+| 0 FREE | Ayeshatasnim ISL A-Z (same type) | GitHub `ayeshatasnim-h/Indian-Sign-Language-dataset` (Apache-2.0) | 26 classes × ~486 = 12,637 images | `python src/download_data.py --free` or https://github.com/ayeshatasnim-h/Indian-Sign-Language-dataset → `data/raw/free-isl-ayeshatasnim/` |
+| 0 FREE | HF Indian SL (parquet, same type) | HuggingFace `Hemg/Indian_sign_language_dataset` (42.7k rows, 292MB) / `akritRihal/Indian_Sign_Language_dataset` (10.8k) | image+label | `huggingface_hub` or https://huggingface.co/datasets/Hemg/Indian_sign_language_dataset |
+| 0 FREE | ISLTranslate / iSign (sentence-level) | `exploration-lab/isltranslate` (31k pairs) / https://exploration-lab.github.io/iSign/ (118k) | sentence-level | open links, Colab-scale |
+| 1 | ISL Fingerspelling Image Dataset (optional) | IEEE DataPort `isl-fingerspelling-image-dataset` | 35 classes, ~14k, 3 signers | https://ieee-dataport.org/documents/isl-fingerspelling-image-dataset — login required. Free sets above already cover A-Z. |
+| 2 | ISL-Hindi Character Dataset | Kaggle `krishbhagat/indian-sign-language-hindi` (48,000 imgs, 40 ×1200) | 40 classes | `python src/download_data.py --hindi` |
+| 3 | ISL-CSLTR sentence-level | Kaggle `drblack00/isl-csltr-indian-sign-language-dataset` (700 videos, 8.29GB) | sentence-level | Colab only: `python src/download_data.py --csltr` |
 
 ### Quick download (Git Bash / PowerShell)
 ```bash

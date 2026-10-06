@@ -1,0 +1,6 @@
+FREE dataset, same A-Z fingerspelling type, no login (verified locally 2026-10-06):
+Source: https://github.com/ayeshatasnim-h/Indian-Sign-Language-dataset (Apache-2.0)
+Verified: 26 classes (a-z), 12,637 images (~486/class).
+Local: data/raw/free-isl-ayeshatasnim/dataset_ISL.zip (115MB) + unzipped/a..z/
+Re-download: python ../../src/download_data.py --free
+Also has csv_ISL.zip (pixel CSVs, 80/20 split) at same repo.

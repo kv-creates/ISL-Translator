@@ -1,0 +1,6 @@
+FREE dataset, same A-Z fingerspelling type, no login (verified locally 2026-10-06):
+Source: https://github.com/RealSign62/RealSign-Indian-Sign-Language-Dataset (CC0-1.0, 4 signers)
+Verified: Training 18,198 (26x700, A=700) + Testing 5,200 (26x200) + Validation 2,579 (26x100).
+Local: data/raw/free-isl-realsign/Dataset.zip (626MB) + unzipped/{Training,Testing,Validation,Letters}/
+Re-download: python ../../src/download_data.py --free
+Use train split for training (signer-diverse), test/val for eval. Replaces IEEE set (which needs login).
