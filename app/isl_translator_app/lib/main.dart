@@ -67,7 +67,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
         _labels = List.generate(40, (i) => 'class_$i');
       }
       try {
-        _model = await Interpreter.fromAsset('models/isl_model.tflite');
+        _model = await Interpreter.fromAsset('assets/models/isl_model.tflite');
         _status = 'Model loaded (${_labels.length} classes)';
       } catch (e) {
         _status = 'Model missing: copy isl_model.tflite to assets/models/';
