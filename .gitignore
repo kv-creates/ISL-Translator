@@ -22,13 +22,12 @@ data/raw/**/*.zip
 data/processed/*.npy
 !data/processed/.gitkeep
 
-# Models
-models/*.h5
-models/*.tflite
+# Models (track small Colab exports; cache hand_landmarker downloads separately)
 models/*.task
 !models/.gitkeep
-# Uncomment to allow small models (<100MB):
-# !models/isl_model.tflite
+!models/isl_model.tflite
+!models/isl_model.h5
+!models/isl_model_portable.h5
 
 # Flutter
 app/**/build/
