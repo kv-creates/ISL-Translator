@@ -47,3 +47,8 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Required for isl_model.tflite Flex ops (BiLSTM TensorList). See tensorflow.org/lite/guide/ops_select
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
+}
