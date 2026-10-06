@@ -1,0 +1,5 @@
+MANUAL DOWNLOAD REQUIRED (IEEE DataPort subscription):
+https://ieee-dataport.org/documents/isl-fingerspelling-image-dataset
+ISL Fingerspelling Image Dataset: 35 classes (A-Z + 1-9), ~400/class, >14000 images, 3 signers.
+Steps: login -> Download ZIP -> unzip contents into this folder (data/raw/isl-fingerspelling/).
+Expected layout: isl-fingerspelling/<A..Z,1..9>/*.jpg

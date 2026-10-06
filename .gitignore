@@ -1,0 +1,46 @@
+# Exclude large raw data, models, caches; keep processed small files + code
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.DS_Store
+Thumbs.db
+*.log
+
+# Raw datasets are large (GBs) - exclude media/zips, keep docs
+data/raw/**/*.jpg
+data/raw/**/*.jpeg
+data/raw/**/*.png
+data/raw/**/*.mp4
+data/raw/**/*.avi
+data/raw/**/*.mov
+data/raw/**/*.zip
+# keep WHERE_IS_DATA.txt + .gitkeep
+
+# Processed npy can be large - keep if <100MB else use Git LFS / Drive
+data/processed/*.npy
+!data/processed/.gitkeep
+
+# Models
+models/*.h5
+models/*.tflite
+!models/.gitkeep
+# Uncomment to allow small models (<100MB):
+# !models/isl_model.tflite
+
+# Flutter
+app/**/build/
+app/**/.dart_tool/
+app/**/.flutter-plugins*
+app/**/pubspec.lock
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# Report temp
+~$*.docx
+
+# Screenshots keep
+!screenshots/

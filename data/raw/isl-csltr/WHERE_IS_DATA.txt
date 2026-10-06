@@ -1,0 +1,8 @@
+Sentence-level ISL (ISH-News derived):
+Option A (Kaggle, 8.29GB - use Colab, too large for local git):
+  https://www.kaggle.com/datasets/drblack00/isl-csltr-indian-sign-language-dataset
+  ISL-CSLTR: 700 videos, 100 sentences, 7 signers, 18863 frames.
+  In Colab: !pip install kagglehub && kagglehub.dataset_download('drblack00/isl-csltr-indian-sign-language-dataset')
+Option B (OPEN, continuous fingerspelling):
+  https://kirandevraj.github.io/ISL-Fingerspelling/ - 1308 segs, 499 videos, 70.85 min.
+Unzip into this folder (data/raw/isl-csltr/).

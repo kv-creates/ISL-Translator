@@ -1,0 +1,6 @@
+Full dataset cached via kagglehub (not committed, 202MB / 48000 files):
+  C:\Users\Owner\.cache\kagglehub\datasets\krishbhagat\indian-sign-language-hindi\versions\1\HindiSignImages48x48
+Verified: 40 classes x 1200 images = 48000, 48x48 JPG, balanced.
+Sample (200 files, 5/class) in ../isl-hindi-sample/ for quick EDA.
+Source: https://www.kaggle.com/datasets/krishbhagat/indian-sign-language-hindi
+To restore full into this folder: COPY=1 python ../../src/download_data.py --hindi
