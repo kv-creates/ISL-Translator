@@ -25,6 +25,7 @@ data/processed/*.npy
 # Models
 models/*.h5
 models/*.tflite
+models/*.task
 !models/.gitkeep
 # Uncomment to allow small models (<100MB):
 # !models/isl_model.tflite
