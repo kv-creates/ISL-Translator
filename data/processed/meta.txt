@@ -1,0 +1,6 @@
+source=D:\mlsignlanguage\ISL_Translator_Project\data\raw\isl-hindi-sample
+num_classes=40
+feature_dim=63 (21*xyz wrist-relative)
+total=200 no_hand=0
+train=140 val=30 test=30 seed=42
+split=70/15/15 stratified; signer-independent: Hindi set lacks signer IDs -> contributor-held-out in Colab when available; dedup by md5 before training (1410 dup groups found in EDA).
