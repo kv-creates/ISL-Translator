@@ -39,7 +39,7 @@ dependencies:
   # exists (ML Kit has no hand API). Substituted with MediaPipe-based hand_detection
   # (21 landmarks, on-device, cross-platform) — correct for ISL landmarks.
   hand_detection: ^4.1.0
-  tflite_flutter: ^0.11.0
+  tflite_flutter: ^0.12.0
   path_provider: ^2.1.4
 
 dev_dependencies:
