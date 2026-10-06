@@ -64,13 +64,14 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
         final lab = await rootBundle.loadString('assets/models/labels.txt');
         _labels = lab.split('\n').where((e) => e.trim().isNotEmpty).toList();
       } catch (_) {
-        _labels = List.generate(40, (i) => 'class_$i');
+        _labels = List.generate(26, (i) => String.fromCharCode(65 + i));
       }
       try {
-        _model = await Interpreter.fromAsset('assets/models/isl_model.tflite');
+        final bytes = await rootBundle.load('assets/models/isl_model.tflite');
+        _model = Interpreter.fromBuffer(bytes.buffer.asUint8List());
         _status = 'Model loaded (${_labels.length} classes)';
       } catch (e) {
-        _status = 'Model missing: copy isl_model.tflite to assets/models/';
+        _status = 'Model error: $e';
       }
       final cam = widget.cameras.firstWhere(
         (c) => c.lensDirection == CameraLensDirection.front,

@@ -1,6 +1,6 @@
 source=D:\mlsignlanguage\ISL_Translator_Project\data\raw\free-isl-realsign\unzipped\Training
 num_classes=26
 feature_dim=63 (21*xyz wrist-relative)
-total=260 no_hand=6
-train=182 val=39 test=39 seed=42
+total=1040 no_hand=26
+train=728 val=156 test=156 seed=42
 split=70/15/15 stratified (RealSign ships 700/200/100 train/test/val; local sample re-splits 70/15/15); signer-independent: RealSign 4 signers kept disjoint where IDs available; dedup by md5 before training.
