@@ -50,6 +50,10 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
   double _latencyMs = 0;
   bool _busy = false;
   String _status = 'Init...';
+  // diagnostics (visible on screen so field issues are actionable)
+  int _frames = 0;
+  int _handsSeen = 0;
+  String _dbg = 'waiting for frames';
 
   @override
   void initState() {
@@ -59,7 +63,8 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
 
   Future<void> _init() async {
     try {
-      _detector = await HandDetector.create();
+      // Lower thresholds for phone cameras at arm's length (defaults 0.5/0.5 miss small hands)
+      _detector = await HandDetector.create(detectorConf: 0.35, minLandmarkScore: 0.3);
       try {
         final lab = await rootBundle.loadString('assets/models/labels.txt');
         _labels = lab.split('\n').where((e) => e.trim().isNotEmpty).toList();
@@ -91,8 +96,28 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
     _busy = true;
     final t0 = DateTime.now();
     try {
-      final hands = await _detector!.detectFromCameraImage(img, maxDim: 640);
-      if (hands.isNotEmpty && hands.first.hasLandmarks) {
+      // Rotation is required on Android/iOS — without it the model sees a
+      // sideways frame and palm detection silently returns [].
+      final cam = _cam!.description;
+      final rot = rotationForFrame(
+        width: img.width,
+        height: img.height,
+        sensorOrientation: cam.sensorOrientation,
+        isFrontCamera: cam.lensDirection == CameraLensDirection.front,
+        deviceOrientation: _cam!.value.deviceOrientation,
+      );
+      final hands = await _detector!.detectFromCameraImage(img, rotation: rot, maxDim: 640);
+      _frames++;
+      if (hands.isEmpty) {
+        setState(() => _dbg = 'frames=$_frames hands=0 (no hand found — hold hand closer, plain background)');
+        return;
+      }
+      if (!hands.first.hasLandmarks) {
+        setState(() => _dbg = 'frames=$_frames hands=${hands.length} no-landmarks (palm found, hand unclear)');
+        return;
+      }
+      {
+        _handsSeen++;
         final vec = _toFeatures(hands.first);
         final out = List.filled(_labels.length, 0.0).reshape([1, _labels.length]);
         _model!.run([vec], out);
@@ -106,6 +131,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
           _current = _labels[best];
           _conf = (probs[best] as double);
           _latencyMs = dt;
+          _dbg = 'frames=$_frames handsDetected=$_handsSeen';
           if (_conf > 0.6) {
             if (_text.isEmpty || _text[_text.length - 1].toString() != _current) {
               _text += _current;
@@ -114,8 +140,9 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
           _status = 'Running';
         });
       }
-    } catch (_) {
-      // keep stream alive
+    } catch (e) {
+      // surface frame errors on screen instead of swallowing them
+      setState(() => _dbg = 'frame error: $e');
     } finally {
       _busy = false;
     }
@@ -162,6 +189,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
             child: Column(
               children: [
                 Text('Status: $_status'),
+                Text('Debug: $_dbg', style: const TextStyle(fontSize: 12, color: Colors.blueGrey)),
                 const SizedBox(height: 6),
                 Text('Detected: $_current (${(_conf * 100).toStringAsFixed(1)}%)  |  Latency: ${_latencyMs.toStringAsFixed(0)} ms',
                     style: const TextStyle(fontWeight: FontWeight.bold)),
