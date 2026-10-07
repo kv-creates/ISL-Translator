@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ISL Translator — Indian Sign Language to Text, Real-Time</title>
+<meta name="description" content="Real-time Indian Sign Language fingerspelling (A–Z) to text. MediaPipe landmarks + CNN-BiLSTM, running on-device. Try the live browser demo.">
+<meta name="theme-color" content="#111318">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111318'/%3E%3Ctext x='32' y='43' font-family='system-ui' font-size='30' font-weight='700' fill='white' text-anchor='middle'%3E%E2%9C%8B%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--bg:#fafafa;--card:#fff;--ink:#111318;--mut:#5b6470;--line:#e8eaed;--acc:#4f46e5;--acc-soft:#eef0ff;--ok:#15803d;--radius:16px;--max:1060px}
+@media (prefers-color-scheme:dark){:root{--bg:#0d0f12;--card:#15181d;--ink:#f2f4f7;--mut:#9aa3af;--line:#23272e;--acc:#818cf8;--acc-soft:#1c2138}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 20px}
+header.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;gap:22px;height:60px}
+.logo{font-weight:800;letter-spacing:-.02em;text-decoration:none;color:var(--ink);font-size:17px}
+.logo span{color:var(--acc)}
+.nav nav{display:flex;gap:18px;margin-left:auto;font-size:14px}
+.nav a.l{color:var(--mut);text-decoration:none}.nav a.l:hover{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 18px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.primary:hover{opacity:.88}.btn:hover{border-color:var(--mut)}
+@media(max-width:640px){.nav nav{display:none}}
+.hero{padding:72px 0 40px;text-align:center}
+.eyebrow{display:inline-block;font-size:13px;font-weight:700;color:var(--acc);background:var(--acc-soft);border-radius:999px;padding:5px 14px;margin-bottom:18px}
+h1{font-size:clamp(34px,5.4vw,58px);line-height:1.08;letter-spacing:-.03em;margin:0 0 16px}
+.sub{color:var(--mut);font-size:clamp(16px,2vw,19px);max-width:640px;margin:0 auto 28px}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:36px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 16px;font-size:13px;color:var(--mut)}
+.chip b{display:block;font-size:18px;color:var(--ink);letter-spacing:-.01em}
+section{padding:44px 0}h2{font-size:26px;letter-spacing:-.02em;margin:0 0 8px}
+.lead{color:var(--mut);margin:0 0 22px;max-width:680px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+.demo{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+@media(max-width:860px){.demo{grid-template-columns:1fr}}
+.stage{position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:4/3}
+.stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.stage video{transform:scaleX(-1)}
+.stage .ph{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;color:#cbd2dc;font-size:14px;text-align:center;padding:20px}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;border-radius:999px;padding:5px 12px;background:var(--acc-soft);color:var(--acc)}
+.pill.live{background:#e7f6ec;color:var(--ok)}.pill.warn{background:#fef3e2;color:#b45309}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.letter{font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.confbar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin:10px 0 4px}
+.confbar i{display:block;height:100%;width:0;background:var(--acc);border-radius:99px;transition:width .15s}
+.meta{display:flex;gap:16px;font-size:13px;color:var(--mut);margin-top:10px}
+.meta b{color:var(--ink)}
+.sentence{min-height:56px;border:1px dashed var(--line);border-radius:12px;padding:12px 14px;font-size:18px;margin-top:12px;word-break:break-word}
+.sentence:empty::before{content:"Your sentence appears here…";color:var(--mut);font-size:15px}
+.tiny{font-size:12.5px;color:var(--mut);margin-top:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:760px){.grid3{grid-template-columns:1fr}}
+.step b{display:block;font-size:15px;margin-bottom:4px}.step p{margin:0;font-size:14px;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em}
+.gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(max-width:760px){.gallery{grid-template-columns:1fr}}
+.gallery figure{margin:0}.gallery img{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);display:block;background:#fff}
+.gallery figcaption{font-size:13px;color:var(--mut);padding:8px 2px 0}
+.dl{display:flex;gap:12px;flex-wrap:wrap}
+footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--mut);font-size:13.5px}
+footer .wrap{display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+footer a{color:var(--mut)}
+code{background:var(--acc-soft);border-radius:6px;padding:1px 7px;font-size:13.5px}
+ol.steps{margin:0;padding-left:20px;font-size:14.5px;color:var(--mut)}ol.steps li{margin:8px 0}ol.steps b{color:var(--ink)}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap nav">
+<a class="logo" href="#">✋ ISL <span>Translator</span></a>
+<nav><a class="l" href="#demo">Live demo</a><a class="l" href="#how">How it works</a><a class="l" href="#results">Results</a><a class="l" href="#app">Android app</a></nav>
+<a class="btn" href="https://github.com/kv-creates/ISL-Translator" target="_blank" rel="noopener">GitHub</a>
+</div></header>
+
+<div class="wrap">
+<div class="hero">
+<div class="eyebrow">Indian Sign Language · Real-time A–Z → text</div>
+<h1>Show a hand sign.<br>Get text instantly.</h1>
+<p class="sub">MediaPipe hand landmarks + CNN-BiLSTM translate ISL fingerspelling to text in real time — fully on-device. No video ever leaves your phone or browser.</p>
+<div class="cta">
+<a class="btn primary" href="#demo">Try live demo</a>
+<a class="btn" href="#app">Get Android app</a>
+<a class="btn" href="final_report.docx" download>Project report</a>
+</div>
+<div class="stats">
+<div class="chip"><b>26</b>letters A–Z</div>
+<div class="chip"><b>18,198</b>training images</div>
+<div class="chip"><b>63-d</b>wrist-relative landmarks</div>
+<div class="chip"><b>417 KB</b>TFLite on-device model</div>
+</div>
+</div>
+
+<section id="demo">
+<h2>Live demo</h2>
+<p class="lead">Runs 100% in your browser: hand tracking via MediaPipe + a tiny 14&nbsp;KB preview model. Hold a letter steady to add it to your sentence. Full CNN-BiLSTM accuracy ships in the Android app.</p>
+<div class="demo">
+<div class="card">
+<div class="stage">
+<video id="video" playsinline muted></video>
+<canvas id="overlay"></canvas>
+<div class="ph" id="ph"><div style="font-size:34px">✋</div><div>Camera is off.<br>Press <b>Start camera</b> — everything runs locally.</div></div>
+</div>
+<div class="row">
+<button class="btn primary" id="startBtn">Start camera</button>
+<button class="btn" id="stopBtn" disabled>Stop</button>
+<span class="pill" id="statusPill"><span class="dot"></span><span id="statusTxt">idle</span></span>
+</div>
+<p class="tiny">First start downloads the hand-tracking model once (~8 MB, Google CDN, cached after). Camera frames never leave this page.</p>
+</div>
+<div class="card">
+<div class="tiny" style="margin:0">PREDICTED LETTER</div>
+<div class="letter" id="bigLetter">–</div>
+<div class="confbar"><i id="confFill"></i></div>
+<div class="tiny" style="margin:0">match <b id="confVal" style="color:var(--ink)">0%</b></div>
+<div class="meta"><span>latency <b id="msVal">–</b></span><span>fps <b id="fpsVal">–</b></span><span>stable <b id="stabVal">–</b></span></div>
+<div class="sentence" id="sentence" aria-live="polite"></div>
+<div class="row">
+<button class="btn" id="addBtn">+ Add letter</button>
+<button class="btn" id="spaceBtn">Space</button>
+<button class="btn" id="backBtn">⌫</button>
+<button class="btn" id="clearBtn">Clear</button>
+<button class="btn" id="speakBtn">🔊 Speak</button>
+</div>
+<p class="tiny">Tip: good lighting, plain background, one hand, hold each sign ~1s. Auto-adds a letter after it stays stable.</p>
+</div>
+</div>
+</section>
+
+<section id="how">
+<h2>How it works</h2>
+<p class="lead">Same pipeline in the browser preview and the Android app — the app just uses the bigger tuned model.</p>
+<div class="grid3">
+<div class="card step"><b>1 · Detect the hand</b><p>MediaPipe finds 21 hand landmarks per frame, on-device, in ~10–30 ms.</p></div>
+<div class="card step"><b>2 · 63-d wrist-relative vector</b><p>Landmark (x, y, z) minus the wrist position — translation-invariant, missing hand = zeros.</p></div>
+<div class="card step"><b>3 · Classify → text</b><p>CNN-BiLSTM (TFLite, 417 KB) outputs A–Z + confidence; stable predictions build the sentence.</p></div>
+</div>
+</section>
+
+<section id="data">
+<h2>Data &amp; model</h2>
+<p class="lead">Real datasets only — no synthetic data. Primary set is free and openly licensed.</p>
+<div class="card" style="overflow-x:auto">
+<table>
+<tr><th>Dataset</th><th>Classes / size</th><th>License</th></tr>
+<tr><td><b>RealSign ISL A–Z</b> (primary)</td><td>26 classes · 18,198 train + 5,200 test + 2,579 val · 4 signers</td><td>CC0-1.0</td></tr>
+<tr><td><b>Ayeshatasnim ISL A–Z</b></td><td>26 classes · ~12,637 images (~486/class)</td><td>Apache-2.0</td></tr>
+<tr><td><b>ISL-Hindi characters</b> (Kaggle)</td><td>40 classes · 48,000 images</td><td>Kaggle</td></tr>
+<tr><td><b>ISLTranslate / iSign</b> (sentence-level)</td><td>31k pairs / 118k videos</td><td>Research</td></tr>
+</table>
+</div>
+<div class="grid3" style="margin-top:14px">
+<div class="card step"><b>Random Forest — 94.9%</b><p>Sample-split baseline on clean RealSign features.</p></div>
+<div class="card step"><b>CNN-BiLSTM + tuning</b><p>Final model (KerasTuner search) → exported TFLite for the app.</p></div>
+<div class="card step"><b>Browser preview — 74.4%</b><p>14 KB nearest-centroid model on the same 63-d features. Fast, honest, runs anywhere.</p></div>
+</div>
+<p class="tiny">Numbers: RF 94.9% and centroid 74.4% measured on the local sample split (728 train / 156 test). Full-set Colab results ship with the release.</p>
+</section>
+
+<section id="results">
+<h2>Results</h2>
+<p class="lead">Training curves, confusion matrix and data checks from the pipeline.</p>
+<div class="gallery">
+<figure><img src="img/training_history.png" alt="Training history curves" loading="lazy" decoding="async" width="960" height="384"><figcaption>Training history — CNN-BiLSTM accuracy &amp; loss.</figcaption></figure>
+<figure><img src="img/confusion_matrix.png" alt="Confusion matrix on test set" loading="lazy" decoding="async" width="960" height="800"><figcaption>Confusion matrix on the held-out test set.</figcaption></figure>
+<figure><img src="img/eda_class_distribution.png" alt="Per-class image counts" loading="lazy" decoding="async" width="960" height="540"><figcaption>Balanced classes — ~700 images per letter.</figcaption></figure>
+<figure><img src="img/mediapipe_demo.png" alt="MediaPipe hand landmarks overlay" loading="lazy" decoding="async" width="480" height="480"><figcaption>MediaPipe 21-landmark extraction on a training image.</figcaption></figure>
+</div>
+</section>
+
+<section id="app">
+<h2>Android app</h2>
+<p class="lead">The full CNN-BiLSTM model runs live on your phone — camera → text + confidence + latency per frame. Android 8+.</p>
+<div class="card">
+<ol class="steps">
+<li><b>Install the APK</b> — grab it from <a href="https://github.com/kv-creates/ISL-Translator/releases" target="_blank" rel="noopener">GitHub Releases</a>, copy to your phone, allow “Install unknown apps”, open it.</li>
+<li><b>Allow the camera</b> — open <b>ISL Translator</b>, grant camera permission.</li>
+<li><b>Sign A–Z</b> — show hand signs; read text, confidence and per-frame ms under the camera.</li>
+</ol>
+<div class="dl" style="margin-top:16px">
+<a class="btn primary" href="https://github.com/kv-creates/ISL-Translator/releases" target="_blank" rel="noopener">Download APK</a>
+<a class="btn" href="isl_model.tflite" download>Model (.tflite, 417 KB)</a>
+<a class="btn" href="labels.txt" download>Labels (A–Z)</a>
+<a class="btn" href="final_report.docx" download>Final report (.docx)</a>
+</div>
+<p class="tiny">Rebuild from source: <code>cd app/isl_translator_app &amp;&amp; flutter build apk --debug</code> (needs Android SDK + CMake 3.22 + Ninja). First build ~40 min for OpenCV natives.</p>
+</div>
+</section>
+</div>
+
+<footer><div class="wrap">
+<span>✋ ISL Translator · Krishna Vishwakarma (Roll 4848) · RealSign CC0-1.0 data</span>
+<span><a href="https://github.com/kv-creates/ISL-Translator" target="_blank" rel="noopener">GitHub</a> · <a href="#demo">Live demo</a> · <a href="final_report.docx" download>Report</a></span>
+</div></footer>
+<script src="app.js" defer></script>
+</body>
+</html>
