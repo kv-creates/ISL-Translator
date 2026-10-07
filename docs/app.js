@@ -27,9 +27,11 @@ async function ensureLandmarker(onProgress){
   const fileset=await vision.FilesetResolver.forVisionTasks(
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
   onProgress&&onProgress("downloading hand model…");
-  landmarker=await vision.HandLandmarker.createFromOptions(fileset,{
-    baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",delegate:"GPU"},
+  const mk=delegate=>vision.HandLandmarker.createFromOptions(fileset,{
+    baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",delegate},
     runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:.4,minHandPresenceConfidence:.4,minTrackingConfidence:.4});
+  try{ landmarker=await mk("GPU"); }
+  catch(e){ onProgress&&onProgress("GPU unavailable, using CPU…"); landmarker=await mk("CPU"); }
   return landmarker;
 }
 function toVec(lm){ const w=lm[0], v=new Float32Array(63);
@@ -94,7 +96,13 @@ startBtn.onclick=async ()=>{
     running=true; lastT=0; stopBtn.disabled=false;
     setStatus("tracking","live"); loop();
   }catch(e){
-    console.error(e); setStatus(location.protocol!=="https:"&&location.hostname!=="localhost"?"needs https":"camera/AI failed","warn");
+    console.error(e);
+    const n=e&&e.name||"";
+    const msg=n==="NotAllowedError"?"camera blocked — allow it and retry"
+      :n==="NotFoundError"?"no camera found"
+      :/fetch|import|network|load|model/i.test(String(e&&e.message||""))?"AI download failed — check connection and retry"
+      :location.protocol!=="https:"&&location.hostname!=="localhost"?"needs https or localhost":"start failed — retry";
+    setStatus(msg,"warn");
     startBtn.disabled=false;
   }
 };
